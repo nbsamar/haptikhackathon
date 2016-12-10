@@ -16,7 +16,7 @@ from flask import request
 import csv
 import json
 
-root_path = "C:\Botathon\haptikhackathon"
+
 
 max_score = 0
 pickle_to_use = ''
@@ -39,6 +39,7 @@ classifiers = [
 
 try:
     app = Flask(__name__)
+    app.debug = True
 except:
     print "Failed to start the Flask application !!"
 
@@ -55,7 +56,7 @@ def Train():
     X = []
     Y = []
 
-    file_path = root_path + "\datasets\diabetes.csv"
+    file_path = "datasets/diabetes.csv"
     with open(file_path, 'r') as csvfile:
         reader = csv.DictReader(csvfile)
 
@@ -72,7 +73,7 @@ def Train():
         clf.fit(X_train, y_train)
         score = clf.score(X_test, y_test)
 
-        file = root_path + '\pickel_files'+ str(name) + ".p"
+        file = 'pickel_files/'+ str(name) + ".p"
         with open(file, "wb") as f:
             pickle.dump(clf, f)
             f.close()
@@ -84,11 +85,11 @@ def Train():
 
     return jsonify({'status':'success', 'Algo': pickle_to_use, 'Score': max_score})
 
-@app.route('/Test', methods=['GET', 'POST'])
+@app.route('/Test', methods=['POST'])
 def Test():
     user_input = json.loads(request.get_data())
 
-    file = root_path + '\pickel_files' + str(user_input["Algo"]) + ".p"
+    file =  'pickel_files/' + str(user_input["Algo"]) + ".p"
 
     f = open(file,'rb')
     clf_predict = pickle.load(f)
