@@ -2,6 +2,8 @@ var Botkit = require('botkit')
 var config = require('./config')
 var controller = Botkit.facebookbot(config.tokens)
 var bot = controller.spawn({})
+var conservationQueue = require('./conversationQueue')
+var messages = conservationQueue.messages
 controller.setupWebserver(config.port,(err,webserver)=>{
     if(err == null) {
       controller.createWebhookEndpoints(controller.webserver,bot,()=>{
@@ -28,30 +30,42 @@ controller.hears(['Help'],'message_received',(bot,message)=>{
         console.log(convo)
         if(err == null) {
            convo.say("Let's check how fit you are")
-           convo.ask('what is your weight?',(response,convo)=>{
-              bot.startTyping(message,()=>{
+           messages.forEach((messageObj)=>{
+              convo.ask(messageObj.message,(response,convo)=>{
+                 bot.startTyping(message,()=>{
 
+                 })
+                 if(messageObj.end) {
+                    messageObj.end_point_callback(response.text,bot,message)
+                    convo.task.endImmediately()
+                 }
+                 else {
+                   messageObj.end_point_callback(response.text)
+                   convo.next()
+                 }
               })
-              console.log(response.text)
-              convo.next()
            })
-           convo.ask('what is your height?',(response,convo)=>{
-              bot.startTyping(message,()=>{
-
-              })
-              console.log(response.text)
-              convo.next()
-           })
-           convo.ask('what is your BMI?',(response,convo)=>{
-              bot.startTyping(message,()=>{
-
-              })
-              console.log(response.text)
-              convo.task.endImmediately()
-
-
-
-           })
+          //  convo.ask('what is your weight?',(response,convo)=>{
+          //     bot.startTyping(message,()=>{
+          //
+          //     })
+          //     console.log(response.text)
+           //
+          //  })
+          //  convo.ask('what is your height?',(response,convo)=>{
+          //     bot.startTyping(message,()=>{
+           //
+          //     })
+          //     console.log(response.text)
+          //     convo.next()
+          //  })
+          //  convo.ask('what is your BMI?',(response,convo)=>{
+          //     bot.startTyping(message,()=>{
+           //
+          //     })
+          //     console.log(response.text)
+          //     convo.task.endImmediately()
+          //  })
         }
     })
 })
